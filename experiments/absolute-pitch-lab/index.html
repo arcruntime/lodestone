@@ -1,0 +1,889 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Absolute Pitch Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --ink:#0E0E12; --panel:#16161D; --panel-2:#1C1C25; --line:#2A2A36;
+  --text:#E9E7F0; --dim:#8C8899; --dimmer:#5E5B6B; --teal:#4DE0D0;
+  --good:#2FBE8B; --warn:#E0A34D; --bad:#C4536F;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--ink);color:var(--text);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+.wrap{max-width:960px;margin:0 auto;padding:22px 22px 70px}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+
+header.top{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;
+  font-size:clamp(26px,4.6vw,40px);line-height:.95;letter-spacing:-.035em;margin:0}
+h1 em{font-style:normal;color:var(--teal)}
+.tagline{color:var(--dim);font-size:13px;max-width:62ch;margin:9px 0 0}
+
+.tabs{display:flex;border-bottom:1px solid var(--line);margin-bottom:22px}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--dimmer);
+  cursor:pointer;font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.17em;
+  text-transform:uppercase;padding:11px 15px;transition:color .15s,border-color .15s}
+.tabs button:hover{color:var(--dim)}
+.tabs button[aria-selected="true"]{color:var(--teal);border-bottom-color:var(--teal)}
+.tabs button:disabled{opacity:.35;cursor:not-allowed}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px}
+.card > h2{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:22px;
+  letter-spacing:-.03em;margin:0 0 6px}
+.card > p.sub{color:var(--dim);font-size:13px;margin:0 0 18px;max-width:66ch}
+h3.lab{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.19em;
+  text-transform:uppercase;color:var(--dimmer);margin:0 0 9px;font-weight:400}
+
+.opts{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px}
+.ctl{display:flex;flex-direction:column;gap:6px}
+.ctl > span{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dimmer);
+  font-family:"JetBrains Mono",monospace}
+.seg{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--panel-2)}
+.seg button{background:none;border:0;color:var(--dim);cursor:pointer;
+  font-family:"JetBrains Mono",monospace;font-size:11px;padding:7px 11px;
+  transition:background .14s,color .14s;white-space:nowrap}
+.seg button + button{border-left:1px solid var(--line)}
+.seg button:hover{color:var(--text);background:#22222C}
+.seg button[aria-pressed="true"]{background:var(--teal);color:#08131A;font-weight:700}
+label.chk{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--dim);cursor:pointer}
+label.chk input{accent-color:var(--teal);width:15px;height:15px}
+
+.btn{background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:9px;
+  padding:11px 18px;cursor:pointer;font-family:"JetBrains Mono",monospace;font-size:11.5px;
+  letter-spacing:.05em;transition:border-color .15s,background .15s}
+.btn:hover{border-color:var(--teal);background:#20202A}
+.btn.primary{background:var(--teal);color:#08131A;border-color:var(--teal);font-weight:700}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn.slim{padding:8px 13px;font-size:10.5px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+/* trial */
+.trialbar{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.counter{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--dim)}
+.counter b{color:var(--teal)}
+.prog{height:3px;background:var(--panel-2);border-radius:2px;overflow:hidden;margin-bottom:22px}
+.prog i{display:block;height:100%;background:var(--teal);transition:width .3s}
+
+.stage{text-align:center;padding:26px 10px 20px;border:1px dashed var(--line);border-radius:12px;margin-bottom:20px}
+.orb{width:74px;height:74px;border-radius:50%;margin:0 auto 14px;background:var(--panel-2);
+  border:1px solid var(--line);transition:transform .18s,background .25s,border-color .25s}
+.orb.on{background:var(--teal);border-color:var(--teal);transform:scale(1.12)}
+.orb.mask{background:#33333F;border-color:#44444F}
+.stagetxt{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dimmer);margin:0}
+.timerbar{height:4px;width:min(320px,80%);margin:16px auto 0;background:var(--panel-2);border-radius:2px;overflow:hidden}
+.timerbar i{display:block;height:100%;background:var(--good);width:100%;transition:width .1s linear,background .3s}
+.timerbar i.slow{background:var(--warn)}
+.timerbar i.late{background:var(--bad)}
+
+/* keyboard */
+.kb{position:relative;height:132px;max-width:430px;margin:0 auto;user-select:none}
+.kb .w{position:absolute;bottom:0;width:calc(100%/7 - 4px);height:132px;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:0 0 7px 7px;cursor:pointer;color:var(--dim);
+  font-family:"JetBrains Mono",monospace;font-size:12px;padding-bottom:10px;
+  display:flex;align-items:flex-end;justify-content:center;transition:background .1s,color .1s,border-color .1s}
+.kb .b{position:absolute;top:0;width:calc(100%/7*0.62);height:80px;background:#0A0A0E;
+  border:1px solid var(--line);border-radius:0 0 6px 6px;cursor:pointer;color:var(--dimmer);
+  font-family:"JetBrains Mono",monospace;font-size:10.5px;padding-bottom:8px;z-index:2;
+  display:flex;align-items:flex-end;justify-content:center;transition:background .1s,color .1s,border-color .1s}
+.kb button:hover:not(:disabled){border-color:var(--teal);color:var(--text)}
+.kb button:disabled{cursor:default}
+.kb button .hint{position:absolute;top:6px;left:0;right:0;text-align:center;font-size:8.5px;
+  color:#3E3B4B;letter-spacing:.1em}
+.kb .b .hint{top:auto;bottom:26px}
+.kb button.hitright{background:#153A2E!important;border-color:var(--good)!important;color:#8FF0CB!important}
+.kb button.hitwrong{background:#3A1520!important;border-color:var(--bad)!important;color:#F0A5B7!important}
+
+.octrow{display:flex;gap:7px;justify-content:center;margin-top:14px}
+.octrow button{background:var(--panel-2);border:1px solid var(--line);color:var(--dim);border-radius:7px;
+  padding:8px 14px;cursor:pointer;font-family:"JetBrains Mono",monospace;font-size:11px}
+.octrow button:hover{border-color:var(--teal);color:var(--text)}
+
+.feedback{text-align:center;font-size:14px;min-height:26px;margin-top:16px}
+
+/* results */
+.bigstat{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:20px}
+.bigstat div{background:var(--panel);padding:14px 14px}
+.bigstat b{display:block;font-family:"JetBrains Mono",monospace;font-size:8.5px;letter-spacing:.15em;
+  color:var(--dimmer);text-transform:uppercase;font-weight:400;margin-bottom:5px}
+.bigstat span{font-family:"JetBrains Mono",monospace;font-size:22px;color:var(--text);letter-spacing:-.02em}
+@media(max-width:640px){.bigstat{grid-template-columns:repeat(2,1fr)}}
+
+.verdict{border-radius:11px;padding:16px 18px;margin-bottom:20px;font-size:14.5px;border:1px solid}
+.verdict h4{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:19px;margin:0 0 6px;letter-spacing:-.02em}
+.v-ap{background:#12312A;border-color:var(--good)}
+.v-quasi{background:#33280F;border-color:var(--warn)}
+.v-chance{background:#25242C;border-color:var(--line)}
+
+svg.chart{width:100%;height:auto;display:block;margin:6px 0 4px}
+.flag{background:var(--panel-2);border:1px solid var(--line);border-left:2px solid var(--warn);
+  border-radius:8px;padding:11px 13px;margin-bottom:9px;font-size:13px;color:var(--dim)}
+.flag b{color:var(--text);font-weight:600}
+.flag.ok{border-left-color:var(--good)}
+
+table.tb{width:100%;border-collapse:collapse;font-family:"JetBrains Mono",monospace;font-size:11px}
+table.tb th{text-align:left;color:var(--dimmer);font-weight:400;font-size:9px;letter-spacing:.15em;
+  text-transform:uppercase;padding:0 8px 7px 0;border-bottom:1px solid var(--line)}
+table.tb td{padding:6px 8px 6px 0;border-bottom:1px solid #21212B;color:var(--dim)}
+.pcgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin-top:4px}
+.pccell{text-align:center;padding:8px 2px;border-radius:6px;background:var(--panel-2);
+  font-family:"JetBrains Mono",monospace;font-size:10px}
+.pccell b{display:block;font-size:11px;margin-bottom:3px}
+.pccell small{color:var(--dimmer);font-size:8.5px}
+@media(max-width:640px){.pcgrid{grid-template-columns:repeat(6,1fr)}}
+
+.levelrow{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.lvbadge{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:26px;
+  color:var(--teal);letter-spacing:-.03em}
+.lvname{font-size:14px;color:var(--text)}
+.lvsub{font-size:12px;color:var(--dimmer)}
+.lvprog{flex:1;min-width:140px;height:5px;background:var(--panel-2);border-radius:3px;overflow:hidden}
+.lvprog i{display:block;height:100%;background:var(--teal);transition:width .4s}
+
+.note{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:13px 15px;
+  font-size:13px;color:var(--dim);margin-bottom:18px}
+.note b{color:var(--text);font-weight:600}
+.note.warn{border-left:2px solid var(--warn)}
+
+textarea{width:100%;min-height:170px;background:#0B0B0F;border:1px solid var(--line);color:#B9B6C6;
+  border-radius:9px;padding:11px;font-family:"JetBrains Mono",monospace;font-size:10.5px;line-height:1.5;resize:vertical}
+.status{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--teal);min-height:16px;margin:8px 0 0}
+footer{margin-top:30px;border-top:1px solid var(--line);padding-top:16px;color:var(--dimmer);font-size:11.5px;max-width:78ch}
+footer b{color:var(--dim);font-weight:500}
+@media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <h1>Absolute <em>Pitch</em> Lab</h1>
+  <p class="tagline">A screener built to resist the usual false positives — randomised octaves and timbres, a memory-wiping scramble between trials, latency capture, and no feedback while it's running. Then a training track that starts from one landmark note and expands.</p>
+</header>
+
+<div class="tabs" role="tablist">
+  <button role="tab" id="tScreen" aria-selected="true">Screen</button>
+  <button role="tab" id="tTrain" aria-selected="false">Train</button>
+  <button role="tab" id="tResults" aria-selected="false">Results</button>
+  <button role="tab" id="tData" aria-selected="false">Save / load</button>
+</div>
+
+<!-- ============ SCREEN ============ -->
+<section id="paneScreen">
+  <div class="card" id="screenSetup">
+    <h2>Baseline screen</h2>
+    <p class="sub">Run this cold. Not after training, not right after playing your keyboard, not while a track is stuck in your head. It gives you no feedback until the end — feedback during a test is training, and would contaminate the measurement.</p>
+
+    <div class="note warn"><b>The one rule that decides whether this means anything:</b> don't hum, don't sing, don't picture a song, don't reach for a known note. The moment you anchor to an internal reference you're measuring relative pitch with extra steps, and the report will probably catch you doing it.</div>
+
+    <div class="opts">
+      <div class="ctl"><span>Trials</span>
+        <div class="seg" id="segN" role="group"><button data-n="20">20</button><button data-n="40">40</button><button data-n="60">60</button></div>
+      </div>
+      <div class="ctl"><span>Octave spread</span>
+        <div class="seg" id="segOct" role="group"><button data-oct="3">3 – 5</button><button data-oct="5">2 – 6</button></div>
+      </div>
+      <div class="ctl"><span>Timbre</span>
+        <div class="seg" id="segTim" role="group"><button data-tim="rand">Randomised</button><button data-tim="piano">Piano only</button></div>
+      </div>
+      <div class="ctl"><span>Options</span>
+        <label class="chk"><input type="checkbox" id="askOct"> Also ask the octave</label>
+        <label class="chk"><input type="checkbox" id="strict"> Strict — 3s then it moves on</label>
+      </div>
+    </div>
+
+    <div class="row">
+      <button class="btn primary" id="startScreen">Start the screen</button>
+      <button class="btn slim" id="soundCheck">Sound check</button>
+    </div>
+    <p class="status" id="screenStatus"></p>
+  </div>
+
+  <div class="card" id="screenRun" hidden>
+    <div class="trialbar">
+      <span class="counter">trial <b id="trialNum">1</b> <span id="trialOf"></span></span>
+      <span class="counter" id="noFeedbackTag">no feedback until the end</span>
+    </div>
+    <div class="prog"><i id="progFill" style="width:0%"></i></div>
+
+    <div class="stage">
+      <div class="orb" id="orb"></div>
+      <p class="stagetxt" id="stageTxt">listen</p>
+      <div class="timerbar"><i id="timerFill"></i></div>
+    </div>
+
+    <div class="kb" id="kb"></div>
+    <div class="octrow" id="octRow" hidden></div>
+    <p class="feedback" id="fb"></p>
+    <div class="row" style="justify-content:center;margin-top:14px">
+      <button class="btn slim" id="abortScreen">Abandon this run</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRAIN ============ -->
+<section id="paneTrain" hidden>
+  <div class="card">
+    <h2>Landmark training</h2>
+    <p class="sub">One note learned properly beats twelve learned vaguely. You start by deciding only whether a tone is C or not, then add notes that are maximally far apart before filling in the gaps. Feedback is immediate here, and the scramble still runs between trials so you can't chain one answer off the last.</p>
+    <div class="note" id="baselineGate"></div>
+
+    <div class="levelrow">
+      <span class="lvbadge" id="lvBadge">L0</span>
+      <div style="flex:1;min-width:180px">
+        <div class="lvname" id="lvName"></div>
+        <div class="lvsub" id="lvSub"></div>
+      </div>
+      <div class="lvprog"><i id="lvFill" style="width:0%"></i></div>
+      <span class="counter mono" id="lvScore"></span>
+    </div>
+
+    <div class="stage">
+      <div class="orb" id="orb2"></div>
+      <p class="stagetxt" id="stageTxt2">press start</p>
+    </div>
+
+    <div id="trainAnswer"></div>
+    <p class="feedback" id="fb2"></p>
+
+    <div class="row" style="margin-top:16px">
+      <button class="btn primary" id="startTrain">Start training</button>
+      <button class="btn slim" id="replayTrain" hidden>Play again</button>
+      <button class="btn slim" id="anchorBtn" hidden>Hear the anchor</button>
+      <button class="btn slim" id="stopTrain" hidden>Stop</button>
+    </div>
+    <p class="status" id="trainStatus"></p>
+  </div>
+
+  <div class="card">
+    <h3 class="lab">Accuracy by pitch class — training</h3>
+    <div class="pcgrid" id="trainGrid"></div>
+  </div>
+</section>
+
+<!-- ============ RESULTS ============ -->
+<section id="paneResults" hidden>
+  <div class="card" id="resultsCard">
+    <h2>Results</h2>
+    <p class="sub" id="noRuns">No completed screens yet. Run the baseline first.</p>
+    <div id="resultsBody" hidden></div>
+  </div>
+</section>
+
+<!-- ============ DATA ============ -->
+<section id="paneData" hidden>
+  <div class="card">
+    <h2>Save / load</h2>
+    <p class="sub">Nothing persists when this page closes. Export before you finish and paste it back next session so the re-screen has a baseline to compare against.</p>
+    <div class="row" style="margin-bottom:12px">
+      <button class="btn slim" id="exportBtn">Export JSON</button>
+      <button class="btn slim" id="copyBtn">Copy</button>
+      <button class="btn slim" id="importBtn">Load pasted JSON</button>
+      <button class="btn slim" id="wipeBtn">Wipe all</button>
+    </div>
+    <textarea id="dataBox" spellcheck="false" placeholder="Paste a previous export here, then press Load pasted JSON."></textarea>
+    <p class="status" id="dataStatus"></p>
+  </div>
+</section>
+
+<footer>
+  <b>What the numbers mean.</b> Chance is 8.3%. Genuine absolute pitch usually looks like 90%+, fast, stable across timbre and register, with errors landing an octave off rather than a semitone off. Learned or partial AP looks like 40–70%, slower, much better on piano and on white keys, with errors clustered one or two semitones away — that clustering is the signature of anchoring to something and counting from it.
+  <br><br>
+  <b>On the training.</b> Adults do measurably improve at naming isolated pitches; what has never been reliably produced in an adult is the involuntary automaticity. Expect a real gain that is narrower and more effortful than the real thing, and that fades without maintenance. Re-screen every couple of weeks to see what actually stuck.
+</footer>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const PC = ["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"];
+const WHITE = [0,2,4,5,7,9,11], BLACK = [1,3,6,8,10];
+/* hue by circle of fifths, matching the feeling map: C blue → G purple → D magenta … */
+const FIFTHS_POS = {0:0,7:1,2:2,9:3,4:4,11:5,6:6,1:7,8:8,3:9,10:10,5:11};
+const hueOf = pc => (240 + 30*FIFTHS_POS[pc]) % 360;
+const colOf = pc => `hsl(${hueOf(pc)} 74% 62%)`;
+
+/* ================= AUDIO ================= */
+let ac=null, waves={};
+function audio(){
+  if(!ac){
+    ac = new (window.AudioContext||window.webkitAudioContext)();
+    waves.sine  = mkWave(k => k===1 ? 1 : 0.04/Math.pow(k,2));
+    waves.piano = mkWave(k => 1/Math.pow(k,1.45));
+    waves.pad   = mkWave(k => 1/Math.pow(k,1.05));
+  }
+  if(ac.state==="suspended") ac.resume();
+  return ac;
+}
+function mkWave(f){
+  const n=14, real=new Float32Array(n), imag=new Float32Array(n);
+  for(let k=1;k<n;k++) imag[k]=f(k);
+  return ac.createPeriodicWave(real, imag, {disableNormalization:false});
+}
+const hz = (pc,oct) => 440*Math.pow(2,(pc-9)/12 + (oct-4));
+
+const TIMBRES = {
+  piano:{wave:"piano", atk:.006, dur:1.15, rel:.9,  lp:9,  vib:0},
+  sine: {wave:"sine",  atk:.03,  dur:1.15, rel:.35, lp:14, vib:0},
+  pad:  {wave:"pad",   atk:.28,  dur:1.3,  rel:.5,  lp:6,  vib:3.6}
+};
+function playNote(pc,oct,timbre,gain){
+  audio();
+  const T=TIMBRES[timbre]||TIMBRES.piano, f=hz(pc,oct), t=ac.currentTime+.03;
+  const o=ac.createOscillator(), g=ac.createGain(), lp=ac.createBiquadFilter();
+  o.setPeriodicWave(waves[T.wave]); o.frequency.value=f;
+  lp.type="lowpass"; lp.frequency.value=Math.min(11000,f*T.lp); lp.Q.value=.4;
+  const amp=(gain==null?.19:gain);
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(amp,t+T.atk);
+  if(timbre==="piano"){ g.gain.setTargetAtTime(amp*.25,t+T.atk,.45); }
+  else { g.gain.setTargetAtTime(amp*.8,t+T.atk,.4); }
+  g.gain.setTargetAtTime(.0001,t+T.dur,T.rel/4);
+  if(T.vib){
+    const lfo=ac.createOscillator(), ld=ac.createGain();
+    lfo.frequency.value=T.vib; ld.gain.value=f*.0035;
+    lfo.connect(ld); ld.connect(o.frequency); lfo.start(t); lfo.stop(t+T.dur+T.rel);
+  }
+  o.connect(lp); lp.connect(g); g.connect(ac.destination);
+  o.start(t); o.stop(t+T.dur+T.rel+.3);
+  return (T.dur+.05)*1000;
+}
+/* scramble: wipes echoic pitch memory so trial N can't be judged against trial N-1 */
+function scramble(ms){
+  audio();
+  const t=ac.currentTime+.02, dur=(ms||700)/1000;
+  for(let i=0;i<5;i++){
+    const f=180+Math.random()*2600;
+    const o=ac.createOscillator(), g=ac.createGain();
+    o.type="triangle"; o.frequency.value=f;
+    const st=t+Math.random()*dur*.55, ln=.09+Math.random()*.14;
+    g.gain.setValueAtTime(0,st);
+    g.gain.linearRampToValueAtTime(.055,st+.01);
+    g.gain.setTargetAtTime(.0001,st+ln,.04);
+    o.connect(g); g.connect(ac.destination);
+    o.start(st); o.stop(st+ln+.35);
+  }
+  const len=Math.floor(ac.sampleRate*dur*.6);
+  const buf=ac.createBuffer(1,len,ac.sampleRate), d=buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,1.6);
+  const src=ac.createBufferSource(), bp=ac.createBiquadFilter(), ng=ac.createGain();
+  src.buffer=buf; bp.type="bandpass"; bp.frequency.value=1300; bp.Q.value=.6; ng.gain.value=.05;
+  src.connect(bp); bp.connect(ng); ng.connect(ac.destination); src.start(t);
+}
+
+/* ================= STATE ================= */
+let store = { runs:[], train:{ level:0, pc:{}, recent:[] } };
+PC.forEach((_,i)=>{ store.train.pc[i]={n:0,c:0}; });
+
+/* ================= KEYBOARD UI ================= */
+const KEYMAP = {a:0,w:1,s:2,e:3,d:4,f:5,t:6,g:7,y:8,h:9,u:10,j:11};
+const HINT = {0:"A",1:"W",2:"S",3:"E",4:"D",5:"F",6:"T",7:"G",8:"Y",9:"H",10:"U",11:"J"};
+function buildKeyboard(host, onPick, subset){
+  host.innerHTML="";
+  const allow = subset || [0,1,2,3,4,5,6,7,8,9,10,11];
+  WHITE.forEach((pc,i)=>{
+    const b=document.createElement("button");
+    b.className="w"; b.dataset.pc=pc;
+    b.style.left = `calc(${i} * (100%/7) + 2px)`;
+    b.innerHTML = `<span class="hint">${HINT[pc]}</span>${PC[pc]}`;
+    if(!allow.includes(pc)){ b.disabled=true; b.style.opacity=".25"; }
+    else b.addEventListener("click",()=>onPick(pc,b));
+    host.appendChild(b);
+  });
+  const BOFF = {1:0,3:1,6:3,8:4,10:5};
+  BLACK.forEach(pc=>{
+    const i=BOFF[pc];
+    const b=document.createElement("button");
+    b.className="b"; b.dataset.pc=pc;
+    b.style.left = `calc(${i} * (100%/7) + (100%/7) - (100%/7*0.31))`;
+    b.innerHTML = `<span class="hint">${HINT[pc]}</span>${PC[pc]}`;
+    if(!allow.includes(pc)){ b.disabled=true; b.style.opacity=".25"; }
+    else b.addEventListener("click",()=>onPick(pc,b));
+    host.appendChild(b);
+  });
+}
+
+/* ================= SCREENER ================= */
+let S = null;
+let nTrials=40, octSpread=3, timMode="rand", wantOct=false, strictMode=false;
+
+function segify(id,attr,cb,init){
+  const box=$(id);
+  box.querySelectorAll("button").forEach(b=>{
+    b.setAttribute("aria-pressed",String(b.dataset[attr]===init));
+    b.addEventListener("click",()=>{
+      box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false"));
+      b.setAttribute("aria-pressed","true"); cb(b.dataset[attr]);
+    });
+  });
+}
+segify("segN","n",v=>nTrials=+v,"40");
+segify("segOct","oct",v=>octSpread=+v,"3");
+segify("segTim","tim",v=>timMode=v,"rand");
+$("askOct").addEventListener("change",e=>wantOct=e.target.checked);
+$("strict").addEventListener("change",e=>strictMode=e.target.checked);
+$("soundCheck").addEventListener("click",()=>{
+  playNote(9,4,"piano");
+  $("screenStatus").textContent="That was A4, 440 Hz. Now clear it out of your head before you start.";
+});
+
+function octList(){ return octSpread===3 ? [3,4,5] : [2,3,4,5,6]; }
+function timList(){ return timMode==="piano" ? ["piano"] : ["piano","sine","pad"]; }
+
+function buildTrials(n){
+  const octs=octList(), tims=timList(), out=[];
+  /* balanced pitch classes, then shuffled, with no immediate repeats */
+  const bag=[];
+  while(bag.length<n) for(let pc=0;pc<12 && bag.length<n;pc++) bag.push(pc);
+  for(let i=bag.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [bag[i],bag[j]]=[bag[j],bag[i]]; }
+  for(let i=1;i<bag.length;i++) if(bag[i]===bag[i-1] && i+1<bag.length){ [bag[i],bag[i+1]]=[bag[i+1],bag[i]]; }
+  bag.forEach(pc=>out.push({pc, oct:octs[(Math.random()*octs.length)|0], tim:tims[(Math.random()*tims.length)|0]}));
+  return out;
+}
+
+function startScreen(){
+  audio();
+  S={ trials:buildTrials(nTrials), i:0, res:[], pendingPc:null, t0:0, timer:null, opts:{n:nTrials,octSpread,timMode,wantOct,strictMode} };
+  $("screenSetup").hidden=true; $("screenRun").hidden=false;
+  $("trialOf").textContent="of "+nTrials;
+  buildKeyboard($("kb"), pickPc);
+  $("octRow").hidden = !wantOct;
+  if(wantOct){
+    $("octRow").innerHTML="";
+    octList().forEach(o=>{
+      const b=document.createElement("button"); b.textContent="oct "+o;
+      b.addEventListener("click",()=>pickOct(o)); $("octRow").appendChild(b);
+    });
+  }
+  runTrial();
+}
+function runTrial(){
+  const t=S.trials[S.i];
+  S.pendingPc=null;
+  $("trialNum").textContent=S.i+1;
+  $("progFill").style.width=(S.i/S.trials.length*100)+"%";
+  $("fb").textContent="";
+  setKbEnabled(false);
+  $("stageTxt").textContent="clearing";
+  $("orb").className="orb mask";
+  scramble(650);
+  setTimeout(()=>{
+    $("stageTxt").textContent="listen";
+    $("orb").className="orb on";
+    playNote(t.pc,t.oct,t.tim);
+    setTimeout(()=>{ $("orb").className="orb"; },700);
+    S.t0=performance.now();
+    setKbEnabled(true);
+    startTimerBar();
+  },820);
+}
+function setKbEnabled(on){
+  $("kb").querySelectorAll("button").forEach(b=>{ b.disabled=!on; });
+  $("stageTxt").textContent = on ? "name it" : $("stageTxt").textContent;
+}
+function startTimerBar(){
+  const el=$("timerFill"); el.className=""; el.style.width="100%";
+  const T0=performance.now(), LIMIT=strictMode?3000:2500;
+  clearInterval(S.timer);
+  S.timer=setInterval(()=>{
+    const e=performance.now()-T0, r=Math.max(0,1-e/LIMIT);
+    el.style.width=(r*100)+"%";
+    if(e>LIMIT*0.72) el.className="slow";
+    if(e>=LIMIT){
+      el.className="late";
+      if(strictMode){ clearInterval(S.timer); recordAnswer(null,null); }
+      else clearInterval(S.timer);
+    }
+  },60);
+}
+function pickPc(pc){
+  if(!S) return;
+  const rt=performance.now()-S.t0;
+  if(wantOct){
+    S.pendingPc={pc,rt};
+    $("stageTxt").textContent="which octave";
+    setKbEnabled(false);
+    return;
+  }
+  clearInterval(S.timer);
+  recordAnswer(pc,null,rt);
+}
+function pickOct(o){
+  if(!S||!S.pendingPc) return;
+  clearInterval(S.timer);
+  recordAnswer(S.pendingPc.pc,o,S.pendingPc.rt);
+}
+function recordAnswer(pc,oct,rt){
+  const t=S.trials[S.i];
+  S.res.push({pc:t.pc, oct:t.oct, tim:t.tim, ans:pc, ansOct:oct, rt: rt==null?null:Math.round(rt), timeout:pc===null});
+  S.i++;
+  $("progFill").style.width=(S.i/S.trials.length*100)+"%";
+  if(S.i>=S.trials.length) finishScreen(); else setTimeout(runTrial,260);
+}
+$("startScreen").addEventListener("click",startScreen);
+$("abortScreen").addEventListener("click",()=>{
+  clearInterval(S&&S.timer); S=null;
+  $("screenRun").hidden=true; $("screenSetup").hidden=false;
+  $("screenStatus").textContent="Run abandoned — nothing saved.";
+});
+document.addEventListener("keydown",e=>{
+  if($("screenRun").hidden) return;
+  const k=e.key.toLowerCase();
+  if(k in KEYMAP && !S.pendingPc){ const b=$("kb").querySelector(`button[data-pc="${KEYMAP[k]}"]`); if(b&&!b.disabled) b.click(); }
+});
+
+function finishScreen(){
+  clearInterval(S.timer);
+  const run={ at:new Date().toISOString(), opts:S.opts, res:S.res, baseline: store.runs.length===0 };
+  store.runs.push(run);
+  S=null;
+  $("screenRun").hidden=true; $("screenSetup").hidden=false;
+  $("screenStatus").textContent="Run saved. Report is on the Results tab.";
+  renderResults(); showTab("results"); updateGate();
+}
+
+/* ================= ANALYSIS ================= */
+function logFact(n){ let s=0; for(let i=2;i<=n;i++) s+=Math.log(i); return s; }
+function binomTail(k,n,p){ /* P(X >= k) */
+  let s=0;
+  for(let i=k;i<=n;i++) s+=Math.exp(logFact(n)-logFact(i)-logFact(n-i)+i*Math.log(p)+(n-i)*Math.log(1-p));
+  return Math.min(1,s);
+}
+function analyse(run){
+  const r=run.res.filter(x=>!x.timeout);
+  const n=r.length, correct=r.filter(x=>x.ans===x.pc).length;
+  const acc = n? correct/n : 0;
+  const rts=r.map(x=>x.rt).filter(x=>x!=null).sort((a,b)=>a-b);
+  const median = rts.length? rts[Math.floor(rts.length/2)] : null;
+  /* signed semitone error, wrapped to -5..+6 */
+  const errs=[];
+  r.forEach(x=>{ if(x.ans!==x.pc){ let d=((x.ans-x.pc)%12+12)%12; if(d>6) d-=12; errs.push(d); } });
+  const hist={}; for(let d=-5;d<=6;d++) hist[d]=0;
+  errs.forEach(d=>hist[d]++);
+  const near = errs.filter(d=>Math.abs(d)<=2).length;
+  const nearShare = errs.length? near/errs.length : 0;
+
+  const by=(key)=>{
+    const m={};
+    r.forEach(x=>{ const k=x[key]; m[k]=m[k]||{n:0,c:0}; m[k].n++; if(x.ans===x.pc) m[k].c++; });
+    return m;
+  };
+  const byTim=by("tim"), byOct=by("oct"), byPc=by("pc");
+  const white=r.filter(x=>WHITE.includes(x.pc)), black=r.filter(x=>BLACK.includes(x.pc));
+  const wAcc=white.length? white.filter(x=>x.ans===x.pc).length/white.length : null;
+  const bAcc=black.length? black.filter(x=>x.ans===x.pc).length/black.length : null;
+
+  let octAcc=null;
+  if(run.opts.wantOct){
+    const withO=r.filter(x=>x.ansOct!=null);
+    octAcc = withO.length ? withO.filter(x=>x.ansOct===x.oct).length/withO.length : null;
+  }
+  const p = n? binomTail(correct,n,1/12) : 1;
+
+  const spread=(m)=>{ const v=Object.values(m).filter(x=>x.n>=3).map(x=>x.c/x.n); return v.length>1? Math.max(...v)-Math.min(...v) : 0; };
+  return {n,correct,acc,median,errs,hist,nearShare,byTim,byOct,byPc,wAcc,bAcc,octAcc,p,
+    timSpread:spread(byTim), octSpread:spread(byOct)};
+}
+function verdict(a){
+  if(a.acc>=.85 && a.median!=null && a.median<2000 && a.timSpread<.22)
+    return {cls:"v-ap",h:"Consistent with genuine absolute pitch",
+      t:"High accuracy, fast, and stable across timbre. That combination is hard to fake with a relative-pitch strategy. Worth confirming with a second cold run on a different day."};
+  if(a.acc>=.55)
+    return {cls:"v-quasi",h:"Quasi-AP — strong learned pitch memory",
+      t:"Well above chance, but the profile suggests a strategy rather than an automatic percept. This is the range most trained adults land in, and it responds well to more training."};
+  if(a.p<.05)
+    return {cls:"v-quasi",h:"Above chance — real latent pitch memory",
+      t:"Not note-naming, but you're carrying more absolute pitch information than random. This is the common case, and it's what the landmark training builds on."};
+  return {cls:"v-chance",h:"At chance",
+    t:"No detectable note-naming ability, which is the normal result and says nothing about your ear generally — relative pitch is a different faculty and yours is clearly working."};
+}
+function bar(pct,col){ return `<div style="height:5px;background:#1C1C25;border-radius:3px;overflow:hidden"><i style="display:block;height:100%;width:${pct}%;background:${col}"></i></div>`; }
+function pctCol(a){ return a>=.85?"var(--good)":a>=.5?"var(--warn)":"var(--bad)"; }
+
+function renderResults(){
+  if(!store.runs.length){ $("noRuns").hidden=false; $("resultsBody").hidden=true; return; }
+  $("noRuns").hidden=true; $("resultsBody").hidden=false;
+  const run=store.runs[store.runs.length-1], a=analyse(run), v=verdict(a);
+
+  const flags=[];
+  if(a.nearShare>.6 && a.errs.length>=5) flags.push({w:1,t:`<b>Errors cluster within two semitones (${Math.round(a.nearShare*100)}% of them).</b> That's the counting signature — it usually means you anchored to a reference and worked outward rather than recognising the note.`});
+  if(a.median!=null && a.median>2200) flags.push({w:1,t:`<b>Median response ${(a.median/1000).toFixed(1)}s.</b> Real AP is a recognition, not a calculation. Deliberating this long generally means a strategy is running.`});
+  if(a.timSpread>.25) flags.push({w:1,t:`<b>Accuracy swings ${Math.round(a.timSpread*100)} points across timbres.</b> Genuine AP is largely timbre-independent; a big piano advantage points to a learned mapping.`});
+  if(a.octSpread>.25) flags.push({w:1,t:`<b>Accuracy swings ${Math.round(a.octSpread*100)} points across octaves.</b> Strength in one register is typical of trained rather than innate AP.`});
+  if(a.wAcc!=null && a.bAcc!=null && a.wAcc-a.bAcc>.2) flags.push({w:1,t:`<b>White keys ${Math.round(a.wAcc*100)}% vs black keys ${Math.round(a.bAcc*100)}%.</b> A white-key bias suggests notation or keyboard familiarity is doing the work.`});
+  if(!flags.length) flags.push({w:0,t:`<b>No anchoring signatures detected.</b> Latency, timbre stability and error spread all look clean, so the accuracy figure is probably measuring what it claims to.`});
+
+  const maxH=Math.max(1,...Object.values(a.hist));
+  let histSvg=`<svg class="chart" viewBox="0 0 480 120">`;
+  for(let d=-5, i=0; d<=6; d++, i++){
+    const h=a.hist[d]/maxH*78, x=12+i*38;
+    const col = d===0 ? "var(--good)" : Math.abs(d)<=2 ? "var(--warn)" : "#4A4757";
+    histSvg+=`<rect x="${x}" y="${96-h}" width="26" height="${h}" rx="3" fill="${col}"></rect>`;
+    histSvg+=`<text x="${x+13}" y="112" fill="#5E5B6B" font-size="10" font-family="JetBrains Mono, monospace" text-anchor="middle">${d>0?"+"+d:d}</text>`;
+    if(a.hist[d]) histSvg+=`<text x="${x+13}" y="${90-h}" fill="#8C8899" font-size="9.5" font-family="JetBrains Mono, monospace" text-anchor="middle">${a.hist[d]}</text>`;
+  }
+  histSvg+=`</svg>`;
+
+  const pcCells = PC.map((nm,pc)=>{
+    const s=a.byPc[pc];
+    const acc = s&&s.n ? s.c/s.n : null;
+    return `<div class="pccell" style="border-bottom:2px solid ${colOf(pc)}">
+      <b style="color:${acc===null?"#3E3B4B":pctCol(acc)}">${acc===null?"–":Math.round(acc*100)}</b>
+      <small>${nm}</small></div>`;
+  }).join("");
+
+  const timRows = Object.keys(a.byTim).map(k=>{
+    const s=a.byTim[k], acc=s.c/s.n;
+    return `<tr><td style="width:70px">${k}</td><td style="width:44px">${s.n}</td>
+      <td style="width:56px;color:${pctCol(acc)}">${Math.round(acc*100)}%</td>
+      <td>${bar(acc*100,pctCol(acc))}</td></tr>`;
+  }).join("");
+  const octRows = Object.keys(a.byOct).sort().map(k=>{
+    const s=a.byOct[k], acc=s.c/s.n;
+    return `<tr><td style="width:70px">oct ${k}</td><td style="width:44px">${s.n}</td>
+      <td style="width:56px;color:${pctCol(acc)}">${Math.round(acc*100)}%</td>
+      <td>${bar(acc*100,pctCol(acc))}</td></tr>`;
+  }).join("");
+
+  let history="";
+  if(store.runs.length>1){
+    history = `<h3 class="lab" style="margin-top:24px">Every run</h3><table class="tb">
+      <thead><tr><th>When</th><th>n</th><th>Correct</th><th>Median RT</th><th></th></tr></thead><tbody>`
+      + store.runs.map((r,i)=>{ const x=analyse(r);
+          return `<tr><td>${new Date(r.at).toLocaleString()}</td><td>${x.n}</td>
+          <td style="color:${pctCol(x.acc)}">${Math.round(x.acc*100)}%</td>
+          <td>${x.median!=null?(x.median/1000).toFixed(2)+"s":"–"}</td>
+          <td>${i===0?'<span style="color:var(--teal)">baseline</span>':""}</td></tr>`; }).join("")
+      + `</tbody></table>`;
+  }
+
+  $("resultsBody").innerHTML = `
+    <div class="verdict ${v.cls}"><h4>${v.h}</h4>${v.t}</div>
+    <div class="bigstat">
+      <div><b>Accuracy</b><span style="color:${pctCol(a.acc)}">${Math.round(a.acc*100)}%</span></div>
+      <div><b>vs chance 8.3%</b><span>${a.p<0.001?"p&lt;.001":"p="+a.p.toFixed(3)}</span></div>
+      <div><b>Median response</b><span>${a.median!=null?(a.median/1000).toFixed(2)+"s":"–"}</span></div>
+      <div><b>${run.opts.wantOct?"Octave correct":"Trials"}</b><span>${run.opts.wantOct&&a.octAcc!=null?Math.round(a.octAcc*100)+"%":a.n}</span></div>
+    </div>
+    <h3 class="lab">Diagnostics</h3>
+    ${flags.map(f=>`<div class="flag ${f.w?"":"ok"}">${f.t}</div>`).join("")}
+    <h3 class="lab" style="margin-top:24px">Error distribution — semitones from the true note</h3>
+    ${histSvg}
+    <p style="font-size:12.5px;color:var(--dimmer);margin:2px 0 0">Errors piled up at ±1 and ±2 mean you were counting. Errors spread evenly, or absent, mean you were recognising.</p>
+    <h3 class="lab" style="margin-top:24px">By pitch class</h3>
+    <div class="pcgrid">${pcCells}</div>
+    <p style="font-size:12.5px;color:var(--dimmer);margin:8px 0 0">White keys ${a.wAcc!=null?Math.round(a.wAcc*100)+"%":"–"} · black keys ${a.bAcc!=null?Math.round(a.bAcc*100)+"%":"–"}</p>
+    <h3 class="lab" style="margin-top:24px">By timbre</h3><table class="tb"><tbody>${timRows}</tbody></table>
+    <h3 class="lab" style="margin-top:20px">By register</h3><table class="tb"><tbody>${octRows}</tbody></table>
+    ${history}`;
+}
+
+/* ================= TRAINING ================= */
+const LEVELS = [
+  {name:"Is it C?", set:[0], binary:true,  octs:[4],           tims:["piano"],
+   sub:"One note, one decision. You're building a single stable category before anything else."},
+  {name:"C vs F♯",  set:[0,6], binary:false, octs:[4],          tims:["piano"],
+   sub:"A tritone apart — the furthest two notes can be. If you can't hear this gap, nothing further will stick."},
+  {name:"Four corners", set:[0,3,6,9], binary:false, octs:[3,4,5], tims:["piano","sine"],
+   sub:"C, D♯, F♯, A — evenly spaced three semitones apart, and now across three octaves."},
+  {name:"Eight", set:[0,2,3,5,6,8,9,11], binary:false, octs:[3,4,5], tims:["piano","sine","pad"],
+   sub:"Filling in between the corners. Timbre is fully randomised from here."},
+  {name:"All twelve", set:[0,1,2,3,4,5,6,7,8,9,10,11], binary:false, octs:[2,3,4,5,6], tims:["piano","sine","pad"],
+   sub:"Everything, every register, every timbre. Hold 85% here and the re-screen will show it."}
+];
+let T = { on:false, cur:null, awaiting:false };
+
+function lvl(){ return LEVELS[store.train.level]; }
+function recentAcc(){
+  const r=store.train.recent.slice(-20);
+  return r.length>=8 ? r.reduce((a,b)=>a+b,0)/r.length : null;
+}
+function renderLevel(){
+  const L=lvl(), ra=recentAcc();
+  $("lvBadge").textContent="L"+store.train.level;
+  $("lvName").textContent=L.name;
+  $("lvSub").textContent=L.sub;
+  const r=store.train.recent.slice(-20);
+  $("lvFill").style.width=(r.length/20*100)+"%";
+  $("lvScore").textContent = ra==null ? `${r.length}/20 to grade` : `${Math.round(ra*100)}% last ${r.length}`;
+  const grid=$("trainGrid");
+  grid.innerHTML = PC.map((nm,pc)=>{
+    const s=store.train.pc[pc], acc=s.n?s.c/s.n:null;
+    const inSet=L.set.includes(pc);
+    return `<div class="pccell" style="border-bottom:2px solid ${inSet?colOf(pc):"#2A2A36"};opacity:${inSet?1:.4}">
+      <b style="color:${acc===null?"#3E3B4B":pctCol(acc)}">${acc===null?"–":Math.round(acc*100)}</b>
+      <small>${nm} · ${s.n}</small></div>`;
+  }).join("");
+}
+function trainAnswerUI(){
+  const L=lvl(), host=$("trainAnswer");
+  if(L.binary){
+    host.innerHTML="";
+    const row=document.createElement("div");
+    row.className="row"; row.style.justifyContent="center";
+    [["It's C",true],["Not C",false]].forEach(([t,isC])=>{
+      const b=document.createElement("button");
+      b.className="btn"; b.style.minWidth="130px"; b.textContent=t;
+      b.addEventListener("click",()=>answerTrain(isC?"C":"NOTC",b));
+      row.appendChild(b);
+    });
+    host.appendChild(row);
+  } else {
+    host.innerHTML='<div class="kb" id="kb2"></div>';
+    buildKeyboard($("kb2"), (pc,b)=>answerTrain(pc,b), L.set);
+  }
+}
+function nextTrain(){
+  const L=lvl();
+  T.awaiting=false;
+  $("fb2").textContent="";
+  document.querySelectorAll("#trainAnswer .hitright,#trainAnswer .hitwrong")
+    .forEach(b=>b.classList.remove("hitright","hitwrong"));
+  $("stageTxt2").textContent="clearing";
+  $("orb2").className="orb mask";
+  scramble(600);
+  setTimeout(()=>{
+    let pc;
+    if(L.binary) pc = Math.random()<.4 ? 0 : [1,2,3,4,5,6,7,8,9,10,11][(Math.random()*11)|0];
+    else pc = L.set[(Math.random()*L.set.length)|0];
+    const oct=L.octs[(Math.random()*L.octs.length)|0];
+    const tim=L.tims[(Math.random()*L.tims.length)|0];
+    T.cur={pc,oct,tim};
+    $("stageTxt2").textContent="listen";
+    $("orb2").className="orb on";
+    playNote(pc,oct,tim);
+    setTimeout(()=>{ $("orb2").className="orb"; $("stageTxt2").textContent=L.binary?"C, or not C?":"name it"; },700);
+    T.awaiting=true;
+  },740);
+}
+function answerTrain(ans,btn){
+  if(!T.awaiting||!T.cur) return;
+  T.awaiting=false;
+  const L=lvl(), cur=T.cur;
+  let ok;
+  if(L.binary) ok = (ans==="C") === (cur.pc===0);
+  else ok = ans===cur.pc;
+
+  const s=store.train.pc[cur.pc]; s.n++; if(ok) s.c++;
+  store.train.recent.push(ok?1:0);
+  if(btn) btn.classList.add(ok?"hitright":"hitwrong");
+  if(!ok && !L.binary){
+    const right=$("trainAnswer").querySelector(`button[data-pc="${cur.pc}"]`);
+    if(right) right.classList.add("hitright");
+  }
+  $("fb2").innerHTML = ok
+    ? `<span style="color:#8FF0CB">Yes — ${PC[cur.pc]}${cur.oct}.</span>`
+    : `<span style="color:#F0A5B7">That was ${PC[cur.pc]}${cur.oct}.</span>`;
+  setTimeout(()=>{ playNote(cur.pc,cur.oct,cur.tim,.14); },260);
+  renderLevel();
+
+  const ra=recentAcc();
+  if(ra!=null && ra>=.85 && store.train.recent.length>=20 && store.train.level<LEVELS.length-1){
+    store.train.level++; store.train.recent=[];
+    $("trainStatus").textContent="Level up — "+lvl().name;
+    setTimeout(()=>{ trainAnswerUI(); renderLevel(); updateAnchorBtn(); if(T.on) nextTrain(); },1400);
+    return;
+  }
+  if(T.on) setTimeout(nextTrain,1500);
+}
+function updateAnchorBtn(){
+  $("anchorBtn").hidden = !(T.on && store.train.level<=1);
+}
+$("startTrain").addEventListener("click",()=>{
+  audio(); T.on=true;
+  $("startTrain").hidden=true; $("stopTrain").hidden=false; $("replayTrain").hidden=false;
+  trainAnswerUI(); renderLevel(); updateAnchorBtn(); nextTrain();
+});
+$("stopTrain").addEventListener("click",()=>{
+  T.on=false; T.awaiting=false;
+  $("startTrain").hidden=false; $("stopTrain").hidden=true; $("replayTrain").hidden=true; $("anchorBtn").hidden=true;
+  $("stageTxt2").textContent="stopped";
+});
+$("replayTrain").addEventListener("click",()=>{ if(T.cur) playNote(T.cur.pc,T.cur.oct,T.cur.tim); });
+$("anchorBtn").addEventListener("click",()=>{
+  playNote(0,4,"piano");
+  $("trainStatus").textContent="That's C4. This crutch disappears at level 2 — lean on it as little as you can.";
+});
+function updateGate(){
+  const g=$("baselineGate");
+  if(store.runs.length){
+    const a=analyse(store.runs[0]);
+    g.className="note";
+    g.innerHTML=`<b>Baseline on file:</b> ${Math.round(a.acc*100)}% over ${a.n} trials, median ${a.median!=null?(a.median/1000).toFixed(2)+"s":"–"}. Train freely — the re-screen has something to compare against now.`;
+  } else {
+    g.className="note warn";
+    g.innerHTML=`<b>No baseline yet.</b> Training first will destroy the measurement — you'd be screening a trained ear and calling it innate. Run the screen cold before you touch this.`;
+  }
+}
+
+/* ================= TABS ================= */
+function showTab(w){
+  const map={screen:["tScreen","paneScreen"],train:["tTrain","paneTrain"],
+    results:["tResults","paneResults"],data:["tData","paneData"]};
+  Object.keys(map).forEach(k=>{
+    const [t,p]=map[k];
+    $(t).setAttribute("aria-selected",String(k===w));
+    $(p).hidden = k!==w;
+  });
+  if(w==="train"){ updateGate(); renderLevel(); }
+  if(w==="results") renderResults();
+  if(w==="data") doExport();
+}
+$("tScreen").addEventListener("click",()=>showTab("screen"));
+$("tTrain").addEventListener("click",()=>showTab("train"));
+$("tResults").addEventListener("click",()=>showTab("results"));
+$("tData").addEventListener("click",()=>showTab("data"));
+
+/* ================= DATA ================= */
+function doExport(){
+  $("dataBox").value=JSON.stringify({format:"ap-lab",version:1,savedAt:new Date().toISOString(),
+    runs:store.runs, train:store.train},null,2);
+  $("dataStatus").textContent=`Exported ${store.runs.length} run(s) and training level L${store.train.level}.`;
+}
+$("exportBtn").addEventListener("click",doExport);
+$("copyBtn").addEventListener("click",async()=>{
+  if(!$("dataBox").value) doExport();
+  try{ await navigator.clipboard.writeText($("dataBox").value); $("dataStatus").textContent="Copied."; }
+  catch(e){ $("dataBox").select(); $("dataStatus").textContent="Clipboard blocked — text selected, press Cmd+C."; }
+});
+$("importBtn").addEventListener("click",()=>{
+  try{
+    const p=JSON.parse($("dataBox").value);
+    if(!p.runs) throw new Error("no runs block");
+    store.runs=p.runs;
+    if(p.train){ store.train=p.train; PC.forEach((_,i)=>{ if(!store.train.pc[i]) store.train.pc[i]={n:0,c:0}; }); }
+    renderResults(); updateGate(); renderLevel();
+    $("dataStatus").textContent=`Loaded ${store.runs.length} run(s), training at L${store.train.level}.`;
+  }catch(e){ $("dataStatus").textContent="Couldn't parse that: "+e.message; }
+});
+$("wipeBtn").addEventListener("click",()=>{
+  store={runs:[],train:{level:0,pc:{},recent:[]}};
+  PC.forEach((_,i)=>{ store.train.pc[i]={n:0,c:0}; });
+  renderResults(); updateGate(); renderLevel(); doExport();
+  $("dataStatus").textContent="Wiped.";
+});
+
+/* ================= GO ================= */
+buildKeyboard($("kb"), ()=>{});
+updateGate(); renderLevel(); renderResults();
+
+/* ---- local persistence: real browsers only, silently no-ops in sandboxes ---- */
+(function(){
+  var K="ap-lab-v1";
+  function save(){try{localStorage.setItem(K,JSON.stringify(store));}catch(e){}}
+  function load(){try{var raw=localStorage.getItem(K);if(!raw)return false;var p=JSON.parse(raw);
+    if(p.runs)store.runs=p.runs;
+    if(p.train){store.train=p.train;PC.forEach(function(_,i){if(!store.train.pc[i])store.train.pc[i]={n:0,c:0};});}
+    return true;}catch(e){return false;}}
+  if(load()){renderResults();updateGate();renderLevel();}
+  setInterval(save,8000);
+  window.addEventListener("beforeunload",save);
+})();
+</script>
