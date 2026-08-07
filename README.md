@@ -6,7 +6,7 @@ A relative-pitch ear trainer for musicians who want to recognise intervals by fe
 
 **Status: first draft, still in development.** The three modes work end to end; interaction and copy are still being tuned against real playtesting.
 
-Live at [lodestone.pages.dev](https://lodestone.pages.dev).
+Live at [lodestone-55o.pages.dev/app/](https://lodestone-55o.pages.dev/app/).
 
 ---
 
